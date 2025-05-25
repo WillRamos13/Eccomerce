@@ -1,11 +1,72 @@
-﻿<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+﻿<<!DOCTYPE html>
+<html lang="es">
 <head>
-    <meta charset="utf-8" />
-    <title></title>
+    <meta charset="UTF-8" />
+    <title>Administrador</title>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
+    <h1>Panel de Administrador</h1>
+    <button onclick="logout()">Cerrar sesión</button>
 
+    <section>
+        <h2>Agregar Producto</h2>
+        <input type="text" id="prod-name" placeholder="Nombre del producto" />
+        <input type="number" id="prod-price" placeholder="Precio" />
+        <button onclick="addProduct()">Agregar</button>
+        <div id="error" style="color: red;"></div>
+    </section>
+
+    <section>
+        <h2>Productos</h2>
+        <div id="products"></div>
+    </section>
+
+    <section>
+        <h2>Pedidos</h2>
+        <div id="orders"></div>
+    </section>
+
+    <section>
+        <h2>Ventas</h2>
+        <div id="sales"></div>
+    </section>
+
+    <script>
+        const socket = io();
+
+        function logout() {
+          window.location.href = '/logout';
+        }
+
+        function addProduct() {
+          const name = document.getElementById('prod-name').value.trim();
+          const price = parseFloat(document.getElementById('prod-price').value);
+          if (!name || isNaN(price) || price <= 0) {
+            document.getElementById('error').innerText = 'Por favor, ingresa un nombre y precio válido.';
+            return;
+          }
+          document.getElementById('error').innerText = '';
+          socket.emit('add-product', { name, price });
+          document.getElementById('prod-name').value = '';
+          document.getElementById('prod-price').value = '';
+        }
+
+        socket.on('update-products', (products) => {
+          document.getElementById('products').innerHTML = products.map(p => `<p>${p.name} - $${p.price.toFixed(2)}</p>`).join('');
+        });
+
+        socket.on('update-sales', (sales) => {
+          document.getElementById('sales').innerHTML = sales.map(s => `<p>${s.name} - $${s.price.toFixed(2)}</p>`).join('');
+        });
+
+        socket.on('update-orders', (orders) => {
+          document.getElementById('orders').innerHTML = orders.map(o => `<p>${o.name} - $${o.price.toFixed(2)}</p>`).join('');
+        });
+
+        socket.on('error-message', msg => {
+          document.getElementById('error').innerText = msg;
+        });
+    </script>
 </body>
 </html>

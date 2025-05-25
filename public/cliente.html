@@ -1,11 +1,76 @@
 ﻿<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="es">
 <head>
-    <meta charset="utf-8" />
-    <title></title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inicio - Tienda Tiempo Real</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #start-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 320px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+            button:hover {
+                background: #2980b9;
+            }
+    </style>
 </head>
 <body>
+    <div id="start-container">
+        <h2>Selecciona tu rol</h2>
+        <select id="role-select">
+            <option value="" disabled selected>Selecciona tu rol</option>
+            <option value="client">Cliente</option>
+            <option value="admin">Administrador</option>
+        </select>
+        <button id="go-login">Ir al Login</button>
+    </div>
 
+    <script>
+        document.getElementById('go-login').addEventListener('click', () => {
+            const role = document.getElementById('role-select').value;
+            if (!role) {
+                alert('Por favor, selecciona un rol.');
+                return;
+            }
+            // Redirigir al login (que es la ruta /login en el servidor)
+            window.location.href = '/login';
+        });
+    </script>
 </body>
 </html>
