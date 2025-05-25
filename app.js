@@ -37,7 +37,7 @@ app.post('/login', (req, res) => {
         req.session.user = { username: user.username, role: user.role };
         return res.redirect(user.role === 'admin' ? '/admin' : '/cliente');
     } else {
-        return res.send('Credenciales inválidas');
+        return res.send('Credenciales invÃ¡lidas');
     }
 });
 
@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
     // Agregar producto
     socket.on('add-product', (product) => {
         if (!product.name || !product.price || product.price <= 0) {
-            socket.emit('error-message', 'Datos de producto inválidos');
+            socket.emit('error-message', 'Datos de producto invÃ¡lidos');
             return;
         }
         products.push(product);
@@ -92,7 +92,7 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
