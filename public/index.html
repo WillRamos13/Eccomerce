@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tienda Tiempo Real</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        .product, .sale, .order {
+            border: 1px solid #ccc;
+            padding: 8px;
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tienda Tiempo Real</h1>
+
+    <section>
+        <h2>Agregar Producto</h2>
+        <input type="text" id="prod-name" placeholder="Nombre" />
+        <input type="number" id="prod-price" placeholder="Precio" />
+        <button id="btn-add-product">Agregar Producto</button>
+    </section>
+
+    <section>
+        <h2>Productos</h2>
+        <div id="products"></div>
+    </section>
+
+    <section>
+        <h2>Registro de Ventas</h2>
+        <div id="sales"></div>
+    </section>
+
+    <section>
+        <h2>Registro de Pedidos</h2>
+        <div id="orders"></div>
+    </section>
+
+    <script>
+    const socket = io();
+
+    const productsDiv = document.getElementById('products');
+    const salesDiv = document.getElementById('sales');
+    const ordersDiv = document.getElementById('orders');
+
+    document.getElementById('btn-add-product').addEventListener('click', () => {
+      const name = document.getElementById('prod-name').value.trim();
+      const price = parseFloat(document.getElementById('prod-price').value);
+      if (!name || isNaN(price)) {
+        alert('Por favor, ingresa nombre y precio válidos');
+        return;
+      }
+      socket.emit('add-product', { name, price });
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-price').value = '';
+    });
+
+    socket.on('update-products', (products) => {
+      productsDiv.innerHTML = '';
+      products.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.textContent = `${p.name} - $${p.price.toFixed(2)}`;
+        productsDiv.appendChild(div);
+      });
+    });
+
+    socket.on('update-sales', (sales) => {
+      salesDiv.innerHTML = '';
+      sales.forEach(s => {
+        const div = document.createElement('div');
+        div.textContent = `Venta: ${s.name} - $${s.price.toFixed(2)}`;
+        salesDiv.appendChild(div);
+      });
+    });
+
+    socket.on('update-orders', (orders) => {
+      ordersDiv.innerHTML = '';
+      orders.forEach(o => {
+        const div = document.createElement('div');
+        div.className = 'order';
+        div.textContent = `Pedido: ${o.name} - $${o.price.toFixed(2)}`;
+        ordersDiv.appendChild(div);
+      });
+    });
+    </script>
+</body>
+</html>
