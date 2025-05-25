@@ -7,18 +7,83 @@
     <script src="/socket.io/socket.io.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 20px;
+            background-color: #f7f9fc;
+            color: #333;
         }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            padding: 10px;
+            font-size: 1rem;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 180px;
+            transition: border-color 0.3s ease;
+        }
+
+            input[type="text"]:focus,
+            input[type="number"]:focus {
+                border-color: #3498db;
+                outline: none;
+            }
 
         button {
-            margin-top: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
 
-        .product, .sale, .order {
-            border: 1px solid #ccc;
-            padding: 8px;
-            margin: 4px 0;
+            button:hover {
+                background-color: #2980b9;
+            }
+
+        .list-item {
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 6px;
+            background-color: #fafafa;
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1rem;
+        }
+
+            .list-item span {
+                font-weight: 600;
+            }
+
+        .error-message {
+            color: #e74c3c;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -28,9 +93,10 @@
 
     <section>
         <h2>Agregar Producto</h2>
-        <input type="text" id="prod-name" placeholder="Nombre" />
-        <input type="number" id="prod-price" placeholder="Precio" />
+        <input type="text" id="prod-name" placeholder="Nombre del producto" />
+        <input type="number" id="prod-price" placeholder="Precio" min="0" step="0.01" />
         <button id="btn-add-product">Agregar Producto</button>
+        <div id="error-msg" class="error-message"></div>
     </section>
 
     <section>
@@ -49,52 +115,67 @@
     </section>
 
     <script>
-    const socket = io();
+        const socket = io();
 
-    const productsDiv = document.getElementById('products');
-    const salesDiv = document.getElementById('sales');
-    const ordersDiv = document.getElementById('orders');
+        const productsDiv = document.getElementById('products');
+        const salesDiv = document.getElementById('sales');
+        const ordersDiv = document.getElementById('orders');
+        const errorMsg = document.getElementById('error-msg');
 
-    document.getElementById('btn-add-product').addEventListener('click', () => {
-      const name = document.getElementById('prod-name').value.trim();
-      const price = parseFloat(document.getElementById('prod-price').value);
-      if (!name || isNaN(price)) {
-        alert('Por favor, ingresa nombre y precio válidos');
-        return;
-      }
-      socket.emit('add-product', { name, price });
-      document.getElementById('prod-name').value = '';
-      document.getElementById('prod-price').value = '';
-    });
+        // Agregar producto
+        document.getElementById('btn-add-product').addEventListener('click', () => {
+            const name = document.getElementById('prod-name').value.trim();
+            const price = parseFloat(document.getElementById('prod-price').value);
+            errorMsg.textContent = '';
 
-    socket.on('update-products', (products) => {
-      productsDiv.innerHTML = '';
-      products.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'product';
-        div.textContent = `${p.name} - $${p.price.toFixed(2)}`;
-        productsDiv.appendChild(div);
-      });
-    });
+            if (!name || isNaN(price) || price <= 0) {
+                errorMsg.textContent = 'Por favor, ingresa un nombre válido y un precio mayor que cero.';
+                return;
+            }
 
-    socket.on('update-sales', (sales) => {
-      salesDiv.innerHTML = '';
-      sales.forEach(s => {
-        const div = document.createElement('div');
-        div.textContent = `Venta: ${s.name} - $${s.price.toFixed(2)}`;
-        salesDiv.appendChild(div);
-      });
-    });
+            socket.emit('add-product', { name, price });
 
-    socket.on('update-orders', (orders) => {
-      ordersDiv.innerHTML = '';
-      orders.forEach(o => {
-        const div = document.createElement('div');
-        div.className = 'order';
-        div.textContent = `Pedido: ${o.name} - $${o.price.toFixed(2)}`;
-        ordersDiv.appendChild(div);
-      });
-    });
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-price').value = '';
+        });
+
+        // Actualizar lista de productos
+        socket.on('update-products', (products) => {
+            productsDiv.innerHTML = '';
+            products.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `<span>${p.name}</span><span>$${p.price.toFixed(2)}</span>`;
+                productsDiv.appendChild(div);
+            });
+        });
+
+        // Actualizar registro de ventas
+        socket.on('update-sales', (sales) => {
+            salesDiv.innerHTML = '';
+            sales.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.textContent = `Venta: ${s.name} - $${s.price.toFixed(2)}`;
+                salesDiv.appendChild(div);
+            });
+        });
+
+        // Actualizar registro de pedidos
+        socket.on('update-orders', (orders) => {
+            ordersDiv.innerHTML = '';
+            orders.forEach(o => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.textContent = `Pedido: ${o.name} - $${o.price.toFixed(2)}`;
+                ordersDiv.appendChild(div);
+            });
+        });
+
+        // Mostrar errores enviados desde el servidor
+        socket.on('error-message', (msg) => {
+            errorMsg.textContent = msg;
+        });
     </script>
 </body>
 </html>
